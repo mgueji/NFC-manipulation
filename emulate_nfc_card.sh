@@ -3,7 +3,8 @@
 CARD_DATA_DIR="./card_data"
 card_uid="$1"
 
-if [[ -z "$card_uid" ]]; then # Check if UID was passed as an argument
+# Check if UID was passed as an argument
+if [[ -z "$card_uid" ]]; then
   echo "Usage: emulate_nfc_card.sh <card_uid>"
   exit 1
 fi
@@ -15,10 +16,16 @@ if [[ ! -f "$card_file" ]]; then
   exit 1
 fi
 
-am start -n com.example.nfcemulator/.NfcEmulatorService # Start the NFC HCE app (ensure it is installed)
+# Start the NFC HCE app (ensure it is installed)
+if ! am start -n com.example.nfcemulator/.NfcEmulatorService; then
+  echo "Failed to start the NFC emulator service."
+  exit 1
+fi
 
-termux-notification --title "NFC Emulation" --content "Card UID: $card_uid is being emulated" --priority high # Notify that emulation is starting
+# Notify that emulation is starting
+termux-notification --title "NFC Emulation" --content "Card UID: $card_uid is being emulated" --priority high
 
-echo "Emulating card with UID: $card_uid" # Output the card data for debugging purposes
+# Output card data for debugging purposes
+echo "Emulating card with UID: $card_uid"
 cat "$card_file"
 termux-toast "Card UID: $card_uid emulated!"
