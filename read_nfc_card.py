@@ -1,8 +1,10 @@
 import nfc
 import os
 import json
+import sys
 
-with open('config.json') as config_file: # Load config
+# Load config
+with open('config.json') as config_file:
     config = json.load(config_file)
 
 CARD_DATA_DIR = config['card_data_dir']
@@ -23,9 +25,13 @@ def on_connect(tag):
     print(f"Card data saved to {card_file}")
 
 def main():
-    with nfc.ContactlessFrontend(config['nfc_reader']) as clf:
-        print("Place an NFC card near the reader...")
-        clf.connect(rdwr={'on-connect': on_connect})
+    try:
+        with nfc.ContactlessFrontend(config['nfc_reader']) as clf:
+            print("Place an NFC card near the reader...")
+            clf.connect(rdwr={'on-connect': on_connect})
+    except Exception as e:
+        print(f"Error reading NFC card: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
