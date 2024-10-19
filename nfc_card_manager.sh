@@ -4,9 +4,10 @@ CONFIG_FILE="config.json" # Load config
 CARD_DATA_DIR=$(jq -r '.card_data_dir' "$CONFIG_FILE")
 LOG_FILE="nfc_project.log"
 
-touch "$LOG_FILE" # Create log file if it doesn't exist
+# Create a log file if it doesn't exist
+touch "$LOG_FILE"
 
-log() { # Logging func
+log() { # Logging
   echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "$LOG_FILE"
 }
 
@@ -17,24 +18,27 @@ list_cards() { # Func to list available cards
 
 read_card() { # Func to read a new NFC card
   echo "Reading NFC card..."
-  python3 read_nfc_card.py
+  if python3 read_nfc_card.py; then
+    log "Successfully read and saved NFC card."
+  else
+    log "Error reading NFC card."
+  fi
 }
 
 emulate_card() { # Func to emulate a saved NFC card
-  echo "Enter the UID of the card you want to emulate:"
-  read card_uid
+  read -p "Enter the UID of the card to emulate: " card_uid
   card_file="$CARD_DATA_DIR/card_${card_uid}.json"
+  
   if [[ -f "$card_file" ]]; then
     echo "Emulating card with UID: $card_uid"
     ./emulate_nfc_card.sh "$card_uid"
   else
     echo "Card with UID $card_uid not found."
-    log "Card with UID $card_uid not found."
-    exit 1
+    log "Attempted to emulate non-existent card UID: $card_uid."
   fi
 }
 
-show_help() { # Help menu
+show_help() { # Help func
   echo "NFC Card Manager Help"
   echo "1. Read and Save an NFC Card - Reads an NFC card and saves its data."
   echo "2. List Saved Cards - Displays all saved NFC cards."
@@ -58,6 +62,6 @@ while true; do
     3) emulate_card ;;
     4) show_help ;;
     5) exit 0 ;;
-    *) echo "Invalid option." ; log "Invalid option selected: $choice" ;;
+    *) echo "Invalid option. Please try again." ; log "Invalid option selected: $choice." ;;
   esac
 done
